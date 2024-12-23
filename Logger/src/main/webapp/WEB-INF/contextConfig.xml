@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd
+		http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.3.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-5.8.xsd"
+	default-lazy-init="false">
+
+	<mvc:resources mapping="/css/**" location="/css/" />
+	<mvc:resources mapping="/custom/**" location="/custom/" />
+	<mvc:resources mapping="/img/**" location="/img/" />
+	<mvc:resources mapping="/js/**" location="/js/" />
+	<mvc:resources mapping="/fonts/**" location="/fonts/" />
+	<mvc:resources mapping="/template/**" location="/template/" />
+	<mvc:resources mapping="/*.*" location="/" />
+	<mvc:resources mapping="/WEB-INF/html" location="/WEB-INF/html" />
+
+	<mvc:view-resolvers>
+		<mvc:jsp prefix="/WEB-INF/html/"/>
+	</mvc:view-resolvers>
+
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver" />
+
+	<bean id="menuBookmarkRepository" class="com.inzent.imanager.repository.MetaEntityRepository">
+		<constructor-arg value="com.inzent.imanager.repository.meta.MenuBookmark" />
+	</bean>
+
+	<bean id="menuBookmarkService" class="com.inzent.imanager.service.MetaEntityService">
+		<property name="metaEntityRepository" ref="menuBookmarkRepository" />
+	</bean>
+
+	<bean id="metaHistoryService" class="com.inzent.imanager.service.MetaEntityService">
+		<property name="metaEntityRepository" ref="metaHistoryRepository" />
+	</bean>
+
+	<bean id="noticeRepository" class="com.inzent.imanager.repository.MetaEntityRepository">
+		<constructor-arg value="com.inzent.imanager.repository.meta.Notice" />
+	</bean>
+
+	<bean id="noticeService" class="com.inzent.imanager.service.MetaEntityService">
+		<property name="metaEntityRepository" ref="noticeRepository" />
+	</bean>
+
+	<bean id="userThemeRepository" class="com.inzent.imanager.repository.MetaEntityRepository">
+		<constructor-arg value="com.inzent.imanager.repository.meta.UserTheme" />
+	</bean>
+
+	<bean id="userThemeService" class="com.inzent.imanager.service.MetaEntityService">
+		<property name="metaEntityRepository" ref="userThemeRepository" />
+	</bean>
+
+	<context:component-scan base-package="com.inzent.imanager" />
+	<context:component-scan base-package="com.inzent.combine.logger" />
+
+	<tx:annotation-driven />
+
+	<mvc:annotation-driven />
+
+	<security:global-method-security secured-annotations="enabled" pre-post-annotations="enabled" />
+
+</beans>

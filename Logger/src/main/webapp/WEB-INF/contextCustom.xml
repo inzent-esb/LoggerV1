@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task" xmlns:security="http://www.springframework.org/schema/security"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.3.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.3.xsd
+		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task-4.3.xsd
+		http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-5.8.xsd"
+	default-lazy-init="false">
+
+	<bean class="com.inzent.combine.logger.context.LogReceiverToRDB">
+		<constructor-arg ref="logTemplate" />
+		<constructor-arg ref="logTransactionTemplate" />
+		<constructor-arg ref="logBatchTemplate" />
+		<constructor-arg ref="logBatchTransactionTemplate" />
+		<constructor-arg ref="logViewerFinder" />
+		<constructor-arg value="com.inzent.combine.logger.entity.TraceLog" />
+		<constructor-arg value="com.inzent.combine.logger.entity.ExceptionLog" />
+	</bean>
+
+	<bean class="com.inzent.imanager.openapi.user.UserPasswordBean">
+		<property name="passwordEncoder">
+			<bean class="org.springframework.security.crypto.password.Pbkdf2PasswordEncoder"/>
+		</property>
+	</bean>
+
+	<task:scheduler id="scheduler" pool-size="1" /> <!-- pool-size는 task 갯수에 맞추어야 함 -->
+	<task:scheduled-tasks scheduler="scheduler">
+		<task:scheduled ref="metaHistoryDeleteTask" method="run" cron="0 30 * * * ?" />
+	</task:scheduled-tasks>
+
+	<security:authentication-manager id="authenticationManager">
+		<security:authentication-provider ref="authenticationProvider" />
+	</security:authentication-manager>
+
+	<bean id="tokenRepository" class="com.inzent.imanager.token.TokenRepository">
+		<property name="compressionCodec">
+			<bean class="io.jsonwebtoken.impl.compression.GzipCompressionCodec" />
+		</property>
+	</bean>
+
+	<security:http auto-config="false" entry-point-ref="accessDeniedHandler" security-context-repository-ref="tokenRepository">
+		<security:intercept-url pattern="/api/auth/token" access="permitAll()" />
+		<security:intercept-url pattern="/api/entity/exceptionLog/**" access="hasRole('ROLE_ExceptionLogViewer')" />
+		<security:intercept-url pattern="/api/entity/menu/**" access="isAuthenticated()" />
+		<security:intercept-url pattern="/api/entity/message/**" access="hasRole('ROLE_MessageViewer')" />
+		<security:intercept-url pattern="/api/entity/metaHistory/**" access="hasRole('ROLE_MetaHistoryViewer')" />
+		<security:intercept-url pattern="/api/entity/notice/**" access="isAuthenticated()" />
+		<security:intercept-url pattern="/api/entity/privilege/search" access="isAuthenticated()" />
+		<security:intercept-url pattern="/api/entity/privilege/**" access="hasRole('ROLE_PrivilegeViewer')" />
+		<security:intercept-url pattern="/api/entity/property/group" access="isAuthenticated()" />
+		<security:intercept-url pattern="/api/entity/property/**" access="hasRole('ROLE_PropertyViewer')" />
+		<security:intercept-url pattern="/api/entity/role/**" access="hasRole('ROLE_RoleViewer')" />
+		<security:intercept-url pattern="/api/entity/traceLog/dump" access="hasRole('ROLE_TraceLogMessage')" />
+		<security:intercept-url pattern="/api/entity/traceLog/body" access="hasRole('ROLE_TraceLogDown')" />
+		<security:intercept-url pattern="/api/entity/traceLog/**" access="hasRole('ROLE_TraceLogViewer')" />
+		<security:intercept-url pattern="/api/entity/user/password" access="permitAll()" />
+		<security:intercept-url pattern="/api/entity/user/**" access="isAuthenticated()" />
+		<security:intercept-url pattern="/api/page/login" access="permitAll()" />
+		<security:intercept-url pattern="/api/page/logoFileName" access="permitAll()" />
+		<security:intercept-url pattern="/api/page/password" access="permitAll()" />
+		<security:intercept-url pattern="/api/page/title" access="permitAll()" />
+		<security:intercept-url pattern="/api/page/**" access="isAuthenticated()" />
+		<security:intercept-url pattern="/api/entity/userTheme/**" access="isAuthenticated()" />
+
+		<security:access-denied-handler ref="accessDeniedHandler" />
+		<security:csrf disabled="true" />
+	</security:http>
+</beans>
